@@ -1,0 +1,156 @@
+- name: copy configuration files into wildfly
+  command: cp -r "{{ dcm4chee_home }}/configuration/dcm4chee-arc" "{{ wildfly_home }}/standalone/configuration"
+  args:
+    creates: "{{ wildfly_home }}/standalone/configuration/dcm4chee-arc"
+  notify: restart wildfly
+
+- name: find zipped jboss modules
+  find:
+    paths: "{{ dcm4chee_home }}/jboss-modules"
+    patterns: "*.zip"
+  register: jboss_modules
+
+- name: check jboss modules
+  command: test -d "{{ wildfly_home }}/modules/org/dcm4che"
+  register: check_jboss_modules
+  ignore_errors: True
+  changed_when: False
+
+- name: unzip jboss modules into wildfly
+  unarchive:
+    src: "{{ item.path }}"
+    dest: "{{ wildfly_home }}"
+    remote_src: yes
+  with_items: "{{ jboss_modules.files }}"
+  notify: restart wildfly
+  when: check_jboss_modules|failed
+
+- name: create jdbc module directory
+  file:
+    path: "{{ dcm4chee_jdbc_module_dir }}"
+    owner: "{{ wildfly_user }}"
+    group: "{{ wildfly_user }}"
+    mode: 0755
+    state: directory
+
+- name: copy jdbc module definition
+  template:
+    src: module.xml.j2
+    dest: "{{ dcm4chee_jdbc_module_dir }}/module.xml"
+    owner: "{{ wildfly_user }}"
+    group: "{{ wildfly_user }}"
+    mode: 0644
+  notify: restart wildfly
+
+- name: download jdbc driver
+  get_url:
+    url: "{{ dcm4chee_jdbc_url }}"
+    dest: "{{ dcm4chee_jdbc_module_dir }}"
+    checksum: "{{ dcm4chee_jdbc_checksum }}"
+    owner: "{{ wildfly_user }}"
+    group: "{{ wildfly_user }}"
+    mode: 0644
+  notify: restart wildfly
+
+- name: check jdbc driver
+  command: >
+    "{{ wildfly_home }}/bin/jboss-cli.sh" -c
+    "/subsystem=datasources/jdbc-driver={{ dcm4chee_jdbc_name }}:read-resource"
+  become: yes
+  become_user: "{{ wildfly_user }}"
+  ignore_errors: True
+  register: check_jdbc_driver
+  changed_when: False
+
+- name: add jdbc driver
+  command: >
+    "{{ wildfly_home }}/bin/jboss-cli.sh" -c
+    "/subsystem=datasources/jdbc-driver={{ dcm4chee_jdbc_name }}:add(driver-name={{ dcm4chee_jdbc_name }},driver-module-name={{ dcm4chee_jdbc_module }})"
+  become: yes
+  become_user: "{{ wildfly_user }}"
+  when: check_jdbc_driver|failed
+
+- name: check jdbc data source
+  command: >
+    "{{ wildfly_home }}/bin/jboss-cli.sh" -c
+    "data-source read-resource --name={{ dcm4chee_jdbc_data_source }}"
+  become: yes
+  become_user: "{{ wildfly_user }}"
+  ignore_errors: True
+  register: check_jdbc_data_source
+  changed_when: False
+
+- name: add jdbc data source
+  command: >
+    "{{ wildfly_home }}/bin/jboss-cli.sh" -c "data-source add
+    --name={{ dcm4chee_jdbc_data_source }}
+    --driver-name={{ dcm4chee_jdbc_name }}
+    --connection-url=jdbc:postgresql://127.0.0.1:5432/{{ dcm4chee_postgresql_database }}
+    --jndi-name=java:/{{ dcm4chee_jdbc_data_source }}
+    --user-name={{ dcm4chee_postgresql_user }}
+    --password={{ dcm4chee_postgresql_password }}
+    --enabled=true"
+  become: yes
+  become_user: "{{ wildfly_user }}"
+  when: check_jdbc_data_source|failed
+
+- name: add jms queues
+  shell: >
+    if !
+    "{{ wildfly_home }}/bin/jboss-cli.sh" -c
+    "jms-queue read-resource --queue-address={{ item }}";
+    then
+    "{{ wildfly_home }}/bin/jboss-cli.sh" -c
+    "jms-queue add --queue-address={{ item }} --entries=java:/jms/queue/{{ item }}";
+    fi
+  become: yes
+  become_user: "{{ wildfly_user }}"
+  register: add_jms_queue
+  changed_when: "'not found' in add_jms_queue.stdout"
+  with_items: "{{ dcm4chee_jms_queues }}"
+ 
+- name: undefine hung-task-threshold of managed executor service
+  shell: >
+    if !
+    "{{ wildfly_home }}/bin/jboss-cli.sh" -c
+    "/subsystem=ee/managed-executor-service=default:read-attribute(name=hung-task-threshold)"
+    | grep '"result" => 0';
+    then
+    "{{ wildfly_home }}/bin/jboss-cli.sh" -c
+    "/subsystem=ee/managed-executor-service=default:undefine-attribute(name=hung-task-threshold)";
+    fi
+  become: yes
+  become_user: "{{ wildfly_user }}"
+  register: hung_task_threshold_of_managed_executor_service
+  changed_when: '"reload-required" in hung_task_threshold_of_managed_executor_service.stdout'
+  notify: restart wildfly
+
+- name: write attributes of managed executor service
+  command: >
+    "{{ wildfly_home }}/bin/jboss-cli.sh" -c
+    "/subsystem=ee/managed-executor-service=default:write-attribute(name={{ item['name'] }},value={{ item['value'] }})"
+  become: yes
+  become_user: "{{ wildfly_user }}"
+  register: managed_executor_service
+  changed_when: '"reload-required" in managed_executor_service.stdout'
+  with_items:
+    - { name: "long-running-tasks", value: "true" }
+    - { name: "core-threads", value: "2" }
+    - { name: "max-threads", value: "100" }
+    - { name: "queue-length", value: "0" }
+  notify: restart wildfly
+
+- name: deploy dcm4chee
+  shell: >
+    if !
+    "{{ wildfly_home }}/bin/jboss-cli.sh" -c
+    "deployment-info --name=dcm4chee-arc*"
+    | grep "dcm4chee-arc";
+    then
+    "{{ wildfly_home }}/bin/jboss-cli.sh" -c
+    "deploy {{ dcm4chee_home }}/deploy/dcm4chee-arc-ear-{{ dcm4chee_version }}-{{ dcm4chee_type }}.ear";
+    fi
+  become: yes
+  become_user: "{{ wildfly_user }}"
+  register: deploy_dcm4chee
+  changed_when: '"dcm4chee-arc" not in deploy_dcm4chee.stdout'

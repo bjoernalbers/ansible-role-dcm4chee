@@ -1,0 +1,12 @@
+---
+- name: initialize postgresql database
+  shell: >
+    cat create-psql.sql create-fk-index.sql
+    | psql -U "{{ dcm4chee_postgresql_user}}" "{{ dcm4chee_postgresql_database }}"
+  args:
+    chdir: "{{ dcm4chee_home }}/sql"
+  become: yes
+  become_user: "{{ dcm4chee_postgresql_admin }}"
+  register: psql_command
+  failed_when: psql_command.stderr
+  notify: restart wildfly

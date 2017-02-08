@@ -1,0 +1,117 @@
+---
+- name: install openldap packages
+  apt:
+    name: '{{ item }}'
+    state: present
+    install_recommends: no
+  with_items:
+    - slapd
+    - ldap-utils
+
+- name: start openldap
+  service:
+    name: slapd
+    state: started
+    enabled: yes 
+
+- name: import schema files into openldap
+  shell: >
+    if !
+    ldapsearch -Y EXTERNAL -LLL -H ldapi:/// -b "cn=schema,cn=config" |
+    grep "^dn:" | grep "{{ item }},cn=schema,cn=config";
+    then
+    ldapadd -Y EXTERNAL -H ldapi:/// -f "{{ dcm4chee_home }}/ldap/slapd/{{ item }}.ldif";
+    fi
+  register: import_ldap_schema
+  changed_when: '"adding new entry" in import_ldap_schema.stdout'
+  with_items:
+    - dicom
+    - dcm4che
+    - dcm4chee-archive
+
+- name: update openldap configuration
+  shell: |
+    if ! ldapsearch -Y EXTERNAL -LLL -H ldapi:/// -b "cn=config" \
+    "{{ item.name }}" | grep "^{{ item.name }}: {{ item.value }}"
+    then
+    echo "dn: olcDatabase={1}mdb,cn=config
+    changetype: modify
+    replace: {{ item.name }}
+    {{ item.name }}: {{ item.value }}" | ldapmodify -Y EXTERNAL -H ldapi:///
+    fi
+  register: ldapmodify
+  changed_when: '"modifying entry" in ldapmodify.stdout'
+  with_items:
+    - { name: "olcSuffix", value: "dc=dcm4che,dc=org" }
+    - { name: "olcRootDN", value: "cn=admin,dc=dcm4che,dc=org" }
+
+- name: change openldap password
+  shell: |
+    ldapsearch -x -LLL -H ldapi:/// -b "cn=config" \
+      -D "{{ dcm4chee_openldap_bind }}" -w "{{ dcm4chee_openldap_password }}"
+    if [ $? -eq 49 ]; then
+    echo "dn: olcDatabase={1}mdb,cn=config
+    changetype: modify
+    replace: olcRootPW
+    olcRootPW: {{ dcm4chee_openldap_password }}" | ldapmodify -Y EXTERNAL -H ldapi:///
+    fi
+  register: ldapmodify
+  changed_when: '"modifying entry" in ldapmodify.stdout'
+
+- name: import default configuration into openldap
+  shell: >
+    if !
+    ldapsearch -b "{{ item.searchbase }}" -s base
+    -D "{{ dcm4chee_openldap_bind }}" -w "{{ dcm4chee_openldap_password }}";
+    then
+    ldapadd -H ldapi:/// -f "{{ item.filename }}"
+    -D "{{ dcm4chee_openldap_bind }}" -w "{{ dcm4chee_openldap_password }}";
+    fi
+  args:
+    chdir: "{{ dcm4chee_home }}/ldap"
+  register: ldapadd
+  changed_when: '"adding new entry" in ldapadd.stdout'
+  with_items:
+    - { searchbase: "dc=dcm4che,dc=org", filename: "init-baseDN.ldif" }
+    - { searchbase: "cn=DICOM Configuration,dc=dcm4che,dc=org", filename: "init-config.ldif" }
+    - { searchbase: "dicomDeviceName=dcm4chee-arc,cn=Devices,cn=DICOM Configuration,dc=dcm4che,dc=org", filename: "sample-config.ldif" }
+
+- name: import vendor data into openldap
+  shell: >
+    if !
+    ldapsearch -b "dicomDeviceName=dcm4chee-arc,cn=Devices,cn=DICOM Configuration,dc=dcm4che,dc=org"
+    -s base
+    -D "{{ dcm4chee_openldap_bind }}" -w "{{ dcm4chee_openldap_password }}"
+    | grep "dicomVendorData";
+    then
+    ldapadd -H ldapi:/// -f "add-vendor-data.ldif"
+    -D "{{ dcm4chee_openldap_bind }}" -w "{{ dcm4chee_openldap_password }}";
+    fi
+  args:
+    chdir: "{{ dcm4chee_home }}/ldap"
+  register: ldapadd
+  changed_when: '"modifying entry" in ldapadd.stdout'
+
+- name: change openldap stuff
+  shell: |
+    if ! {{ dcm4chee_ldapsearch }} -b "{{ item.dn }}" |
+    grep "^{{ item.attribute }}: {{ item.value }}"
+    then
+    echo "version: 1
+    dn: {{ item.dn }}
+    changetype: modify
+    replace: {{ item.attribute }}
+    {{ item.attribute }}: {{ item.value }}" |
+    {{ dcm4chee_ldapmodify }}
+    fi
+  register: ldapmodify
+  changed_when: '"modifying entry" in ldapmodify.stdout'
+  with_items:
+    - dn: "dcmStorageID=fs1,dicomDeviceName=dcm4chee-arc,cn=Devices,cn=DICOM Configuration,dc=dcm4che,dc=org"
+      attribute: "dcmURI"
+      value: "file://{{ dcm4chee_storage }}"
+  notify: restart wildfly
+
+- name: check openldap configuration
+  command: slaptest -F /etc/ldap/slapd.d
+  changed_when: False

@@ -1,0 +1,46 @@
+---
+# Required packages to install and run DCM4CHEE
+dcm4chee_packages:
+  - unzip
+
+# Install dir
+dcm4chee_prefix: "/opt"
+
+# Other version-based dir / file / url names
+dcm4chee_type: "psql"
+dcm4chee_basename: "dcm4chee-arc-{{ dcm4chee_version }}-{{ dcm4chee_type }}"
+dcm4chee_archive: "{{ dcm4chee_basename }}.zip"
+dcm4chee_url: "http://downloads.sourceforge.net/project/dcm4che/dcm4chee-arc-light5/{{ dcm4chee_version }}/{{ dcm4chee_archive }}"
+ 
+# home sweet home
+dcm4chee_home: "{{ dcm4chee_prefix }}/dcm4chee"
+
+# PostgreSQL stuff
+dcm4chee_postgresql_admin: "postgres"
+
+# OpenLDAP
+dcm4chee_openldap_bind: "cn=admin,dc=dcm4che,dc=org"
+dcm4chee_openldap_password: "secret" # TODO: Please change!
+dcm4chee_ldapsearch: "ldapsearch -H ldapi:/// -D '{{ dcm4chee_openldap_bind }}' -w '{{ dcm4chee_openldap_password }}' -LLL"
+dcm4chee_ldapmodify: "ldapmodify -H ldapi:/// -D '{{ dcm4chee_openldap_bind }}' -w '{{ dcm4chee_openldap_password }}'"
+dcm4chee_ldapargs: "-H ldapi:/// -D '{{ dcm4chee_openldap_bind }}' -w '{{ dcm4chee_openldap_password }}' -LLL"
+
+# JDBC stuff
+dcm4chee_jdbc_name: "postgresql"
+dcm4chee_jdbc_module: "org.postgresql"
+dcm4chee_jdbc_filename: "postgresql-9.4.1212.jar"
+dcm4chee_jdbc_checksum: "sha1:38931d70811d9bfcecf9c06f7222973c038a12de"
+dcm4chee_jdbc_url: "https://jdbc.postgresql.org/download/{{ dcm4chee_jdbc_filename }}"
+dcm4chee_jdbc_module_dir: "{{ wildfly_home }}/modules/org/postgresql/main"
+dcm4chee_jdbc_data_source: "PacsDS"
+
+dcm4chee_jms_queues:
+  - StgCmtSCP
+  - StgCmtSCU
+  - MPPSSCU
+  - IANSCU
+  - Export1
+  - Export2
+  - Export3
+  - HL7Send
+  - RSClient

@@ -1,0 +1,37 @@
+galaxy_info:
+  author: Björn Albers
+  description: Install DCM4CHEE Archive v5 on Ubuntu Linux
+  license: MIT
+  min_ansible_version: 2.2
+
+  platforms:
+  - name: Ubuntu
+    versions:
+  #  - all
+  #  - lucid
+  #  - maverick
+  #  - natty
+  #  - oneiric
+  #  - precise
+  #  - quantal
+  #  - raring
+  #  - saucy
+  #  - trusty
+  #  - utopic
+  #  - vivid
+  #  - wily
+     - xenial
+  #  - yakkety
+
+  galaxy_tags:
+    - dcm4chee
+    - dcm4che
+    - pacs
+    - archive
+    - dicom
+    - java
+    - wildfly
+
+dependencies:
+  - role: bjoernalbers.wildfly
+    wildfly_config: standalone-full.xml

@@ -1,0 +1,9 @@
+---
+- include: install.yml
+  tags: install
+- include: postgresql.yml
+  tags: postgresql
+- include: openldap.yml
+  tags: openldap
+- include: wildfly.yml
+  tags: wildfly

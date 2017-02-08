@@ -1,0 +1,38 @@
+---
+- name: install packages
+  apt:
+    name: "{{ item }}"
+    state: present
+  with_items: "{{ dcm4chee_packages }}"
+
+- name: create install directory
+  file:
+    path: "{{ dcm4chee_prefix }}"
+    state: directory
+
+- name: download archive
+  get_url:
+    url: "{{ dcm4chee_url }}"
+    dest: "{{ dcm4chee_prefix }}/{{ dcm4chee_archive }}"
+    checksum: "{{ dcm4chee_checksum }}"
+
+- name: unzip archive
+  unarchive:
+    src: "{{ dcm4chee_prefix }}/{{ dcm4chee_archive }}"
+    remote_src: yes
+    dest: "{{ dcm4chee_prefix }}"
+    creates: "{{ dcm4chee_prefix }}/{{ dcm4chee_basename }}"
+
+- name: create symlink
+  file:
+    src: "{{ dcm4chee_prefix }}/{{ dcm4chee_basename }}"
+    dest: "{{ dcm4chee_home }}"
+    state: link
+
+- name: create storage dir
+  file:
+    path: "{{ dcm4chee_storage }}"
+    owner: "{{ wildfly_user }}"
+    group: "{{ wildfly_user }}"
+    mode: 0755
+    state: directory

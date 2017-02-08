@@ -1,0 +1,21 @@
+---
+- name: create postgresql database
+  postgresql_db:
+    name: "{{ dcm4chee_postgresql_database }}"
+    state: present
+    encoding: UTF-8
+    lc_collate: de_DE.UTF-8
+    lc_ctype: de_DE.UTF-8
+  become: yes
+  become_user: "{{ dcm4chee_postgresql_admin }}"
+  notify: initialize postgresql database
+
+- name: create postgresql role
+  postgresql_user:
+    name: "{{ dcm4chee_postgresql_user }}"
+    password: "{{ dcm4chee_postgresql_password }}"
+    db: "{{ dcm4chee_postgresql_database }}"
+    priv: ALL
+    state: present
+  become: yes
+  become_user: "{{ dcm4chee_postgresql_admin }}"

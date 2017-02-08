@@ -1,0 +1,13 @@
+---
+# These two veriables have to be updated together for every new release
+# (the latter is the SHA-1 checksum of DCM4CHEE zip archive)!
+
+dcm4chee_version: "5.9.0"
+dcm4chee_checksum: "sha1:8c6f2a904b6ce385f2252e30a16e317b5b5fba15"
+
+# PostgreSQL stuff
+dcm4chee_postgresql_user: "pacs"
+dcm4chee_postgresql_password: "helloworld" # Please change!
+dcm4chee_postgresql_database: "pacsdb"
+
+dcm4chee_storage: "/usr/local/var/dicom"
