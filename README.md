@@ -12,7 +12,7 @@ You have to provide creditials for the PostgreSQL admin role.
 Role Variables
 --------------
 
-RTFS (Read The Fine Source coode)!
+RTFS (Read The Fine Source code)!
 
 Dependencies
 ------------
