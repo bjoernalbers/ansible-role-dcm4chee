@@ -7,3 +7,5 @@
   tags: openldap
 - include: wildfly.yml
   tags: wildfly
+- include: jlsl.yml
+  tags: jlsl
