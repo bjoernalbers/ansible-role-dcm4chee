@@ -1,6 +1,8 @@
 Ansible Role: DCM4CHEE
 ======================
 
+[![Build Status](https://travis-ci.org/bjoernalbers/ansible-role-dcm4chee.svg?branch=master)](https://travis-ci.org/bjoernalbers/ansible-role-dcm4chee)
+
 Install DCM4CHEE Archive v5 on Ubuntu Linux.
 
 Requirements
