@@ -16,6 +16,7 @@
     - JPEG 8-bit Lossy
     - JPEG 12-bit Lossy
     - JPEG 2000 Lossless
+  notify: restart wildfly
 
 - name: enable default compression rule
   shell: |
@@ -35,6 +36,7 @@
   changed_when: '"modifying entry" in ldapmodify.stdout'
   with_items:
     - JPEG LS Lossless
+  notify: restart wildfly
   
 - name: delete unwanted transfer syntaxes
   shell: |
