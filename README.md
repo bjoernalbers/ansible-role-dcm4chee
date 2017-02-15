@@ -31,4 +31,4 @@ Example Playbook
 License
 -------
 
-This Ansible role is released unter the [MIT License](LICENSE.txt).
+This Ansible role is released under the [MIT License](LICENSE.txt).
