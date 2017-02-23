@@ -13,7 +13,7 @@ dcm4chee_archive: "{{ dcm4chee_basename }}.zip"
 dcm4chee_url: "http://downloads.sourceforge.net/project/dcm4che/dcm4chee-arc-light5/{{ dcm4chee_version }}/{{ dcm4chee_archive }}"
  
 # home sweet home
-dcm4chee_home: "{{ dcm4chee_prefix }}/dcm4chee"
+dcm4chee_home: "{{ dcm4chee_prefix }}/{{ dcm4chee_basename }}"
 
 # PostgreSQL stuff
 dcm4chee_postgresql_admin: "postgres"

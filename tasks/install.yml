@@ -25,8 +25,8 @@
 
 - name: create symlink
   file:
-    src: "{{ dcm4chee_prefix }}/{{ dcm4chee_basename }}"
-    dest: "{{ dcm4chee_home }}"
+    src: "{{ dcm4chee_home }}"
+    dest: "{{ dcm4chee_prefix }}/dcm4chee"
     state: link
 
 - name: create storage dir
