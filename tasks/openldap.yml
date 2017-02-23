@@ -65,7 +65,8 @@
     -D "{{ dcm4chee_openldap_bind }}" -w "{{ dcm4chee_openldap_password }}";
     then
     ldapadd -H ldapi:/// -f "{{ item.filename }}"
-    -D "{{ dcm4chee_openldap_bind }}" -w "{{ dcm4chee_openldap_password }}";
+    -D "{{ dcm4chee_openldap_bind }}" -w "{{ dcm4chee_openldap_password }}"
+    -c || true;
     fi
   args:
     chdir: "{{ dcm4chee_home }}/ldap"
