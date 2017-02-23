@@ -1,4 +1,4 @@
-Ansible Role: DCM4CHEE
+Ansible Role: dcm4chee
 ======================
 
 Install DCM4CHEE Archive v5 on Ubuntu Linux.
