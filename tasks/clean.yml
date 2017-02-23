@@ -1,0 +1,22 @@
+---
+- name: stop openldap
+  service:
+    name: slapd
+    state: stopped
+    enabled: no 
+  ignore_errors: yes
+
+- name: uninstall openldap
+  apt:
+    name: slapd
+    state: absent
+    purge: yes
+
+- name: delete openldap directories
+  file:
+    path: "{{ item }}"
+    state: absent
+  with_items:
+    - /etc/ldap
+    - /var/lib/ldap
+    - /var/run/slapd

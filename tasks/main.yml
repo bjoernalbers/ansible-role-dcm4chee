@@ -1,4 +1,6 @@
 ---
+- include: clean.yml
+  when: dcm4chee_upgrade
 - include: install.yml
   tags: install
 - include: postgresql.yml

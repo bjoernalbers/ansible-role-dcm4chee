@@ -35,3 +35,4 @@ galaxy_info:
 dependencies:
   - role: bjoernalbers.wildfly
     wildfly_config: standalone-full.xml
+    wildfly_reinstall: dcm4chee_upgrade

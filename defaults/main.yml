@@ -11,3 +11,7 @@ dcm4chee_postgresql_password: "helloworld" # Please change!
 dcm4chee_postgresql_database: "pacsdb"
 
 dcm4chee_storage: "/usr/local/var/dicom"
+
+# Set this to yes in order to re-install wildfly and openldap first.
+# This ensures a "fresh" installation.
+dcm4chee_upgrade: no
