@@ -1,4 +1,8 @@
 ---
+dcm4chee_version: "5.9.2"
+dcm4chee_checksum: "sha1:b23d581294ae5cd873a9e9682a80965479ad4768"
+dcm4chee_type: "psql"
+
 # Required packages to install and run DCM4CHEE
 dcm4chee_packages:
   - unzip
@@ -7,7 +11,6 @@ dcm4chee_packages:
 dcm4chee_prefix: "/opt"
 
 # Other version-based dir / file / url names
-dcm4chee_type: "psql"
 dcm4chee_basename: "dcm4chee-arc-{{ dcm4chee_version }}-{{ dcm4chee_type }}"
 dcm4chee_archive: "{{ dcm4chee_basename }}.zip"
 dcm4chee_url: "http://downloads.sourceforge.net/project/dcm4che/dcm4chee-arc-light5/{{ dcm4chee_version }}/{{ dcm4chee_archive }}"
