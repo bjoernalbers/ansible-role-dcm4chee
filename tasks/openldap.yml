@@ -75,7 +75,7 @@
   with_items:
     - { searchbase: "dc=dcm4che,dc=org", filename: "init-baseDN.ldif" }
     - { searchbase: "cn=DICOM Configuration,dc=dcm4che,dc=org", filename: "init-config.ldif" }
-    - { searchbase: "dicomDeviceName=dcm4chee-arc,cn=Devices,cn=DICOM Configuration,dc=dcm4che,dc=org", filename: "sample-config.ldif" }
+    - { searchbase: "dicomDeviceName=dcm4chee-arc,cn=Devices,cn=DICOM Configuration,dc=dcm4che,dc=org", filename: "default-config.ldif" }
 
 - name: import vendor data into openldap
   shell: >
