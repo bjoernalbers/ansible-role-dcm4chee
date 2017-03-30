@@ -26,6 +26,7 @@ dcm4chee_openldap_bind: "cn=admin,dc=dcm4che,dc=org"
 dcm4chee_openldap_password: "secret" # TODO: Please change!
 dcm4chee_ldapargs: -H ldapi:/// -D "{{ dcm4chee_openldap_bind }}" -w "{{ dcm4chee_openldap_password }}"
 dcm4chee_ldapsearch: ldapsearch {{ dcm4chee_ldapargs }} -LLL
+dcm4chee_ldapadd: ldapadd {{ dcm4chee_ldapargs }}
 dcm4chee_ldapmodify: ldapmodify {{ dcm4chee_ldapargs }}
 dcm4chee_ldapdelete: ldapdelete {{ dcm4chee_ldapargs }}
 

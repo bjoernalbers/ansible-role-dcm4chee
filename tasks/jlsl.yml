@@ -1,4 +1,19 @@
 ---
+- name: enable jpeg ls lossless compression
+  shell: |
+    if ! {{ dcm4chee_ldapsearch }} -s base -b \
+    "cn=JPEG LS Lossless,dicomDeviceName=dcm4chee-arc,cn=Devices,cn=DICOM Configuration,dc=dcm4che,dc=org"
+    then
+    echo "dn: cn=JPEG LS Lossless,dicomDeviceName=dcm4chee-arc,cn=Devices,cn=DICOM Configuration,dc=dcm4che,dc=org
+    dicomTransferSyntax: 1.2.840.10008.1.2.4.80
+    objectClass: dcmArchiveCompressionRule
+    dcmImageWriteParam: maxPixelValueError=0.0
+    cn: JPEG LS Lossless" | {{ dcm4chee_ldapadd }}
+    fi
+  register: ldapadd
+  changed_when: '"adding new entry" in ldapadd.stdout'
+  notify: restart wildfly
+
 - name: delete unwanted transfer syntaxes
   shell: |
     {{ dcm4chee_ldapsearch }} -o ldif-wrap=no -b \
