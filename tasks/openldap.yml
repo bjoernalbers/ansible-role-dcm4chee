@@ -113,6 +113,26 @@
       value: "file://{{ dcm4chee_storage }}"
   notify: restart wildfly
 
+- name: change storage path format
+  shell: |
+    if ! {{ dcm4chee_ldapsearch }} -o ldif-wrap=no -s base \
+    -b "dcmStorageID=fs1,dicomDeviceName=dcm4chee-arc,cn=Devices,cn=DICOM Configuration,dc=dcm4che,dc=org" |
+    grep "dcmProperty: pathFormat={00080020,date,yyyy/MM/dd}/{0020000D,hash}/{0020000E,hash}/{00080018,hash}"
+    then
+    echo "version: 1
+    dn: dcmStorageID=fs1,dicomDeviceName=dcm4chee-arc,cn=Devices,cn=DICOM Configuration,dc=dcm4che,dc=org
+    changetype: modify
+    delete: dcmProperty
+    dcmProperty: pathFormat={now,date,yyyy/MM/dd}/{0020000D,hash}/{0020000E,hash}/{00080018,hash}
+    -
+    add: dcmProperty
+    dcmProperty: pathFormat={00080020,date,yyyy/MM/dd}/{0020000D,hash}/{0020000E,hash}/{00080018,hash}" |
+    {{ dcm4chee_ldapmodify }}
+    fi
+  register: ldapmodify
+  changed_when: '"modifying entry" in ldapmodify.stdout'
+  notify: restart wildfly
+
 - name: check openldap configuration
   command: slaptest -F /etc/ldap/slapd.d
   changed_when: False
