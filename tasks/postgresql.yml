@@ -4,8 +4,8 @@
     name: "{{ dcm4chee_postgresql_database }}"
     state: present
     encoding: UTF-8
-    lc_collate: de_DE.UTF-8
-    lc_ctype: de_DE.UTF-8
+    lc_collate: "{{ dcm4chee_postgresql_locale }}"
+    lc_ctype: "{{ dcm4chee_postgresql_locale }}"
   become: yes
   become_user: "{{ dcm4chee_postgresql_admin }}"
   notify: initialize postgresql database

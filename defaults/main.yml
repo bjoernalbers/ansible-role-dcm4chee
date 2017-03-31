@@ -3,6 +3,7 @@
 dcm4chee_postgresql_user: "pacs"
 dcm4chee_postgresql_password: "helloworld" # Please change!
 dcm4chee_postgresql_database: "pacsdb"
+dcm4chee_postgresql_locale: "en_US.UTF-8"
 
 dcm4chee_storage: "/usr/local/var/dicom"
 
