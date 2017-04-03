@@ -1,6 +1,6 @@
 ---
-dcm4chee_version: "5.9.3"
-dcm4chee_checksum: "sha1:fffcefd597091fb872f5c2c030ad755e60dbf861"
+dcm4chee_version: "5.10.0"
+dcm4chee_checksum: "sha1:d3399538925316c2c3bc7e9d01d92db2939aa397"
 dcm4chee_type: "psql"
 
 # Required packages to install and run DCM4CHEE
